@@ -1,0 +1,22 @@
+name: Daily Task Reminder  # アプリの名前
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 毎日日本時間の朝9時（UTCだと0時）に実行
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install gspread requests oauth2client
+      - name: Run reminder script
+        env:
+          GOOGLE_SHEETS: ${{ secrets.GOOGLE_SHEETS }}
+          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+        run: python remind.py # あなたが書いたプログラムを動かす
