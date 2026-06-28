@@ -18,10 +18,8 @@ def send_discord_notification(message):
     url = st.secrets["DISCORD"]["WEBHOOK_URL"]
     requests.post(url, json={"content": message})
     
-# 1. ページ設定（一番最初に！）
-st.set_page_config(page_title="ToDo App", layout="wide")
 
-# 2. CSSの注入（ここがベストな場所！）
+# CSSの注入（ここがベストな場所！）
 st.markdown("""
 <style>
     /* ここにCSSを書く */
