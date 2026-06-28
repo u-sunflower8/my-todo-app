@@ -3,6 +3,13 @@ import gspread
 import requests  # ★これが必要！
 from oauth2client.service_account import ServiceAccountCredentials
 
+# ファイルの先頭、import の直後に入れる
+try:
+    import requests
+    st.write("requestsは読み込めています！")
+except ImportError:
+    st.error("requestsが見つかりません！requirements.txtを確認してください。")
+
 # 認証設定
 creds_dict = st.secrets["GOOGLE_SHEETS"]
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
