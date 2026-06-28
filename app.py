@@ -45,8 +45,8 @@ st.markdown("""
 
 /* ボタンの強制上書き */
     div.stButton > button, div.stFormSubmitButton > button {
-        background-color: #f0f0f0 !important;
-        color: #333333 !important;
+        background-color: #333333 !important;
+        color: #f0f0f0 !important;
         border: none !important;
         border-radius: 20px !important;
         font-weight: 600 !important;
@@ -56,8 +56,8 @@ st.markdown("""
 
     /* ボタンにカーソルを合わせた時の変化 */
     div.stButton > button:hover, div.stFormSubmitButton > button:hover {
-        background-color: #333333 !important;
-        color: #f0f0f0 !important;
+        background-color: #f0f0f0 !important;
+        color: #333333 !important;
         border: none !important;
     }
 </style>
