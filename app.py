@@ -31,31 +31,21 @@ with st.form("add_todo"):
     submit = st.form_submit_button("追加")
 
 if submit:
-        # 1. シート書き込み
+        # 1. シート書き込み（成功するまで少し待つイメージ）
         sheet.append_row([title, str(due), "未", priority, category])
         
-        # 2. Discord通知を詳細に表示する
-        st.write("Discordへ送信を試みています...")
+        # 2. 通知処理を視覚的に落ち着かせる
+        with st.spinner("Discordに通知中..."):
+            try:
+                response = requests.post(url, json={"content": f"📝 {title}"})
+                if response.status_code == 204:
+                    st.success("通知成功！")
+                else:
+                    st.error("通知失敗...")
+            except Exception as e:
+                st.error(f"エラー: {e}")
         
-        try:
-            url = st.secrets["DISCORD_WEBHOOK_URL"]
-            payload = {"content": f"📝 新タスク: {title}"}
-            
-            # 応答を確認する
-            response = requests.post(url, json=payload)
-            
-            # 結果を表示
-            st.write(f"Discordからの応答コード: {response.status_code}")
-            
-            if response.status_code == 204:
-                st.success("通知がDiscordに送信されました！")
-            else:
-                st.error(f"Discordへの送信で失敗しました。コード: {response.status_code}")
-                st.write(f"詳細: {response.text}")
-                
-        except Exception as e:
-            st.error(f"プログラムの例外エラー: {e}")
-            
+        # すぐに画面をリセットして一覧を更新
         st.rerun()
 
 # サイドバー絞り込み
