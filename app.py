@@ -23,7 +23,7 @@ def send_discord_notification(message):
 st.markdown("""
 <style>
     /* ここにCSSを書く */
-    .stApp { background-color: #f8f9fa; }
+    .stApp { background-color: #606060; }
 </style>
 """, unsafe_allow_html=True)
 
