@@ -19,22 +19,28 @@ def send_discord_notification(message):
     response = requests.post(url, json=payload)
     return response.status_code, response.text
 
-# --- 期限チェック関数 ---
 def check_deadlines(todos):
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
+    
+    # 読み込んだデータの「項目名」を画面に表示して確認する
+    if todos:
+        st.sidebar.write("読み込んだ列名:", todos[0].keys())
+    
     found = False
     for todo in todos:
+        # strip() を使うことで、もし「期限 」のようにスペースが入っていても無視します
+        due_val = todo.get("期限") or todo.get(" 期限") 
+        
         try:
-            # 日付文字列が yyyy-mm-dd と仮定
-            due_date = datetime.datetime.strptime(todo["期限"], '%Y-%m-%d').date()
+            due_date = datetime.datetime.strptime(due_val, '%Y-%m-%d').date()
             if due_date == tomorrow:
                 send_discord_notification(f"⚠️ 期限通知: '{todo['タスク名']}' が明日({due_date})期限です！")
                 found = True
         except:
             continue
     return found
-
+    
 # --- メイン画面 ---
 st.title("ToDoリスト")
 
