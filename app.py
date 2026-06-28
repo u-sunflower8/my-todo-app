@@ -2,6 +2,7 @@ import streamlit as st
 import gspread
 import requests
 import datetime
+import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 
 # 1. 接続設定
@@ -12,28 +13,10 @@ client = gspread.authorize(creds)
 SHEET_ID = "101hhNwt1VrR0fn3me63ifsduMqelnVIrY1ozr_Ul74w"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
-# 2. 通知用・チェック用の関数
+# 2. 通知関数
 def send_discord_notification(message):
     url = st.secrets["DISCORD"]["WEBHOOK_URL"]
     requests.post(url, json={"content": message})
-
-def check_deadlines(todos):
-    today = datetime.date.today()
-    tomorrow = today + datetime.timedelta(days=1)
-    found = False
-    for todo in todos:
-        try:
-            # リストから直接取得 (0:タスク名, 1:期限, 2:状態, 3:優先度, 4:カテゴリ)
-            values = list(todo.values())
-            task_name = values[0]
-            due_str = values[1]
-            due_date = datetime.datetime.strptime(due_str, '%Y-%m-%d').date()
-            if due_date == tomorrow:
-                send_discord_notification(f"期限通知: '{task_name}' が明日({due_date})期限です！")
-                found = True
-        except:
-            continue
-    return found
 
 # 3. 画面の作成
 st.title("最強のToDoアプリ")
@@ -43,37 +26,54 @@ with st.form("todo_input"):
     st.subheader("新しいタスクを追加")
     new_task = st.text_input("なにをしますか？")
     new_date = st.date_input("期限日を選んでください")
-    # ここに優先度とカテゴリを復活させました
     priority = st.selectbox("優先度", ["高", "中", "低"])
     category = st.selectbox("カテゴリ", ["仕事", "プライベート", "買い物", "その他"])
-    submit = st.form_submit_button("スプレッドシートに保存")
+    submit = st.form_submit_button("追加")
 
     if submit:
         if new_task:
-            # シートに書き込む (順番を合わせる)
+            # 1:タスク名, 2:期限, 3:完了フラグ, 4:優先度, 5:カテゴリ
             sheet.append_row([new_task, str(new_date), "未着手", priority, category])
-            send_discord_notification(f"タスク追加: {new_task} (期限: {new_date}, 優先度: {priority})")
+            send_discord_notification(f"🆕 タスク追加: {new_task} (期限: {new_date}, 優先度: {priority})")
             st.success("追加しました！")
             st.rerun()
         else:
             st.error("タスクの内容を入力してください。")
 
-# 4. データの取得
+# 4. データ取得と並び替え
 data = sheet.get_all_values()
-if len(data) > 0:
+if len(data) > 1:
     headers = data[0]
-    all_todos = [dict(zip(headers, row)) for row in data[1:] if any(row)]
+    df = pd.DataFrame(data[1:], columns=headers)
+    
+    # 未完了のみ抽出
+    df = df[df['完了フラグ'] == '未着手']
+    
+    # 優先度を数値化して並び替え
+    priority_map = {"高": 1, "中": 2, "低": 3}
+    df['p_num'] = df['優先度'].map(priority_map)
+    df = df.sort_values(by=['p_num', '期限'])
+    
+    # 表示用データ
+    display_df = df[['タスク名', '期限', '優先度', 'カテゴリ']]
+
+    # 5. 一覧表示
+    st.subheader("未完了タスク一覧 (優先度順)")
+    st.table(display_df)
 else:
-    all_todos = []
+    st.write("タスクはまだ登録されていません。")
 
-# サイドバーのボタン
-if st.sidebar.button("明日の期限をチェック"):
-    if check_deadlines(all_todos):
-        st.sidebar.success("期限が近いタスクを通知しました！")
-    else:
-        st.sidebar.info("明日が期限のタスクはありません。")
-
-# 5. 一覧表示
-st.subheader("現在のタスク一覧")
-if all_todos:
-    st.table(all_todos)
+# 6. アプリを開いた瞬間に自動チェック（1日1回だけ実行）
+if 'checked' not in st.session_state:
+    st.session_state['checked'] = True
+    # 自動チェック処理
+    today = datetime.date.today()
+    tomorrow = today + datetime.timedelta(days=1)
+    
+    for _, row in df.iterrows():
+        try:
+            due_date = datetime.datetime.strptime(row['期限'], '%Y-%m-%d').date()
+            if due_date == tomorrow:
+                send_discord_notification(f"⚠️ 期限通知: '{row['タスク名']}' が明日({due_date})期限です！")
+        except:
+            continue
