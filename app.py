@@ -59,7 +59,12 @@ if submit:
     st.rerun()
 
 # 期限チェックボタン
-all_todos = sheet.get_all_records()
+data = sheet.get_all_values()
+headers = data[0]  # 1行目を見出しとして取得
+all_todos = []
+for row in data[1:]:
+    # 行データとヘッダーを組み合わせる
+    all_todos.append(dict(zip(headers, row)))
 if st.sidebar.button("期限をチェックする"):
     if check_deadlines(all_todos):
         st.sidebar.success("期限が近いタスクを通知しました！")
