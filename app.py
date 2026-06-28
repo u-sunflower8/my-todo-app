@@ -11,13 +11,14 @@ client = gspread.authorize(creds)
 SHEET_ID = "101hhNwt1VrR0fn3me63ifsduMqelnVIrY1ozr_Ul74w"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
-# --- 2. Discord通知関数 (診断機能付き) ---
+# Discord通知関数（このブロックをそのまま差し替えてください）
 def send_discord_notification(message):
+    # 関数の「中」でURLを定義すれば、エラーになりません
     url = st.secrets["DISCORD_WEBHOOK_URL"]
     payload = {"content": message}
-    response = requests.post(url, json=payload)
     
-    # 診断用：結果を返す
+    # 送信処理
+    response = requests.post(url, json=payload)
     return response.status_code, response.text
 
 # --- 3. アプリのUIと処理 ---
