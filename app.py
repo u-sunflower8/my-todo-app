@@ -49,18 +49,3 @@ if len(data) > 1:
     st.table(df[['タスク名', '期限', '優先度', 'カテゴリ']])
 else:
     st.write("タスクがありません")
-
-# 6. アプリを開いた瞬間に自動チェック（1日1回だけ実行）
-if 'checked' not in st.session_state:
-    st.session_state['checked'] = True
-    # 自動チェック処理
-    today = datetime.date.today()
-    tomorrow = today + datetime.timedelta(days=1)
-    
-    for _, row in df.iterrows():
-        try:
-            due_date = datetime.datetime.strptime(row['期限'], '%Y-%m-%d').date()
-            if due_date == tomorrow:
-                send_discord_notification(f"⚠️ 期限通知: '{row['タスク名']}' が明日({due_date})期限です！")
-        except:
-            continue
