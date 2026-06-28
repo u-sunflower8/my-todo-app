@@ -1,6 +1,7 @@
 import streamlit as st
 import gspread
 import requests
+import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
 # --- 1. 認証と設定 ---
