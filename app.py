@@ -1,6 +1,6 @@
 import streamlit as st
 import gspread
-import requests  # ★これが必要！
+import requests
 from oauth2client.service_account import ServiceAccountCredentials
 
 # 認証設定
@@ -26,21 +26,21 @@ with st.form("add_todo"):
     priority = st.selectbox("優先度", ["高", "中", "低"])
     category = st.selectbox("カテゴリ", ["仕事", "プライベート", "買い物", "その他"])
     submit = st.form_submit_button("追加")
-    
+
+# ここで submit の処理を完結させる
 if submit:
-        # 1. シートへの書き込み
-        sheet.append_row([title, str(due), "未", priority, category])
-        
-        # 2. Discord通知 (try-exceptでエラーを回避して表示)
-# ファイルの最後の方に、一時的に以下を追記して保存してください
-# アプリを開くたびにDiscordにテストメッセージが飛ぶはずです
-try:
-    send_discord_notification("テスト通知：アプリが起動しました！")
-    st.write("テスト通知を送信しました！Discordを確認してください。")
-except Exception as e:
-    st.write(f"テスト通知でエラー: {e}")
-        
-        st.rerun()
+    # 1. シートへの書き込み
+    sheet.append_row([title, str(due), "未", priority, category])
+    
+    # 2. Discord通知
+    try:
+        send_discord_notification(f"📝 新しいタスク: {title} ({category})")
+        st.success("追加しました！(Discord通知成功)")
+    except Exception as e:
+        st.error(f"Discord通知エラー: {e}")
+    
+    st.rerun()
+
 # サイドバー絞り込み
 st.sidebar.header("フィルター")
 all_todos = sheet.get_all_records()
