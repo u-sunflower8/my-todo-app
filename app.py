@@ -45,12 +45,12 @@ st.markdown("""
 
 /* ボタンの強制上書き */
     div.stButton > button, div.stFormSubmitButton > button {
-        background-color: #E0E0E0 !important;
+        background-color: #f0f0f0 !important;
         color: #333333 !important;
         border: none !important;
-        border-radius: 6px !important;
+        border-radius: 20px !important;
         font-weight: 500 !important;
-        padding: 0.5rem 1rem !important;
+        padding: 0.5rem 3rem !important;
         transition: all 0.3s ease !important;
     }
 
