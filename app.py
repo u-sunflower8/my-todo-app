@@ -57,7 +57,7 @@ if len(data) > 1:
     df = pd.DataFrame(all_data, columns=headers)
     
     # ここから下は同じです
-    df = df[df['完了フラグ'] == '未着手']
+    df = df[df['状態'] == '未着手']
     priority_map = {"高": 1, "中": 2, "低": 3}
     df['p_num'] = df['優先度'].map(priority_map)
     df = df.sort_values(by=['p_num', '期限'])
