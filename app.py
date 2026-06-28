@@ -4,7 +4,7 @@ import requests
 import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
-# --- 設定 ---
+# 1. 接続設定
 creds_dict = st.secrets["GOOGLE_SHEETS"]
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
@@ -12,54 +12,70 @@ client = gspread.authorize(creds)
 SHEET_ID = "101hhNwt1VrR0fn3me63ifsduMqelnVIrY1ozr_Ul74w"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
-# --- 通知・チェック関数 ---
+# 2. 通知用・チェック用の関数
 def send_discord_notification(message):
     url = st.secrets["DISCORD"]["WEBHOOK_URL"]
     requests.post(url, json={"content": message})
 
-# --- データ取得の強制修正 ---
-data = sheet.get_all_values()
-# 1行目をヘッダーとする（A, B, C... ではなく「タスク名」などと認識させる）
-headers = data[0]
-all_todos = []
-for row in data[1:]:
-    # 空行は飛ばす
-    if not any(row): continue
-    # 辞書型に変換（これで「期限」というキーが確実に使えるようになります）
-    all_todos.append(dict(zip(headers, row)))
-
-# --- 期限チェック機能 ---
 def check_deadlines(todos):
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
     found = False
-    
     for todo in todos:
         try:
-            # todo.values() でリスト化して、順番で取り出します
-            # インデックス 0番目 = タスク名
-            # インデックス 1番目 = 期限
+            # 1列目(0)をタスク名、2列目(1)を期限として取得
             values = list(todo.values())
             task_name = values[0]
             due_str = values[1]
-            
-            # 日付をチェック
             due_date = datetime.datetime.strptime(due_str, '%Y-%m-%d').date()
-            
             if due_date == tomorrow:
                 send_discord_notification(f"⚠️ 期限通知: '{task_name}' が明日({due_date})期限です！")
                 found = True
-        except Exception as e:
-            # エラーが起きても無視して次へ進む（空行対策）
+        except:
             continue
     return found
 
-# --- UI ---
-st.title("ToDoリスト")
-if st.sidebar.button("期限をチェックする"):
-    if check_deadlines(all_todos):
-        st.sidebar.success("通知しました！")
-    else:
-        st.sidebar.info("明日期限のタスクはありません。")
+# 3. 画面の作成（ここからが「書くところ」です）
+st.title("🚀 最強のToDoアプリ")
 
-st.table(all_todos)
+# --- タスク入力フォーム ---
+with st.form("todo_input"):
+    st.subheader("📝 新しいタスクを追加")
+    new_task = st.text_input("なにをしますか？")
+    new_date = st.date_input("期限日を選んでください")
+    submit = st.form_submit_button("スプレッドシートに保存")
+
+    if submit:
+        if new_task:
+            # シートに書き込む（1列目:タスク名, 2列目:期限, 3列目:状態）
+            sheet.append_row([new_task, str(new_date), "未着手"])
+            send_discord_notification(f"🆕 タスクが追加されました: {new_task} (期限: {new_date})")
+            st.success("追加しました！")
+            st.rerun() # 画面を更新
+        else:
+            st.error("タスクの内容を入力してください。")
+
+# 4. データの取得と期限チェック
+data = sheet.get_all_values()
+if len(data) > 0:
+    headers = data[0]
+    all_todos = [dict(zip(headers, row)) for row in data[1:] if any(row)]
+else:
+    all_todos = []
+
+# サイドバーのボタン
+if st.sidebar.button("⏰ 明日の期限をチェック"):
+    if all_todos:
+        if check_deadlines(all_todos):
+            st.sidebar.success("期限が近いタスクをDiscordに通知しました！")
+        else:
+            st.sidebar.info("明日が期限のタスクはありません。")
+    else:
+        st.sidebar.warning("タスクがまだありません。")
+
+# 5. 一覧表示
+st.subheader("📊 現在のタスク一覧")
+if all_todos:
+    st.table(all_todos)
+else:
+    st.write("タスクはまだ登録されていません。上のフォームから追加してください。")
