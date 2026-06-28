@@ -68,8 +68,14 @@ with st.form("todo_input"):
     category = st.selectbox("カテゴリ", ["仕事", "プライベート", "買い物", "その他"])
     submit = st.form_submit_button("追加")
     if submit:
-        sheet.append_row([new_task, str(new_date), "未着手", priority, category])
-        st.rerun()
+        if new_task:
+            sheet.append_row([new_task, str(new_date), "未着手", priority, category])
+            # 通知機能を復活！
+            send_discord_notification(f"🆕 タスク追加: {new_task} (期限: {new_date}, 優先度: {priority})")
+            st.success("追加しました！")
+            st.rerun()
+        else:
+            st.error("タスク名を入力してください")
 
 # 3. データ取得
 data = sheet.get_all_values()
