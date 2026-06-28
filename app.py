@@ -43,18 +43,21 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* ボタンをシンプルで主張しすぎないデザインに */
-    div.stButton > button {
-        background-color: #606060 !important;
-        color: #E0E0E0 !important;
+/* ボタンの強制上書き */
+    div.stButton > button, div.stFormSubmitButton > button {
+        background-color: #E0E0E0 !important;
+        color: #333333 !important;
         border: none !important;
-        border-radius: 20px !important;
-        font-weight: 400 !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.3s ease !important;
     }
-    
-    /* 選択時の色だけアクセントカラーに（例：落ち着いたブルーグレー） */
-    div.stButton > button:hover {
+
+    /* ボタンにカーソルを合わせた時の変化 */
+    div.stButton > button:hover, div.stFormSubmitButton > button:hover {
         background-color: #BDBDBD !important;
+        border: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
