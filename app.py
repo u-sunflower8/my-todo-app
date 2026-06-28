@@ -40,24 +40,29 @@ with st.form("todo_input"):
         else:
             st.error("タスクの内容を入力してください。")
 
-# 4. データ取得と並び替え
+# 4. データ取得と並び替え (ここを差し替えてください)
 data = sheet.get_all_values()
 if len(data) > 1:
     headers = data[0]
-    df = pd.DataFrame(data[1:], columns=headers)
+    # データ行を読み込む際、列の数がヘッダーと合わない行を自動で無視するようにします
+    all_data = []
+    for row in data[1:]:
+        if len(row) == len(headers):
+            all_data.append(row)
+        elif len(row) < len(headers):
+            # 足りない分を空欄で埋める
+            row.extend([''] * (len(headers) - len(row)))
+            all_data.append(row)
+            
+    df = pd.DataFrame(all_data, columns=headers)
     
-    # 未完了のみ抽出
+    # ここから下は同じです
     df = df[df['完了フラグ'] == '未着手']
-    
-    # 優先度を数値化して並び替え
     priority_map = {"高": 1, "中": 2, "低": 3}
     df['p_num'] = df['優先度'].map(priority_map)
     df = df.sort_values(by=['p_num', '期限'])
     
-    # 表示用データ
     display_df = df[['タスク名', '期限', '優先度', 'カテゴリ']]
-
-    # 5. 一覧表示
     st.subheader("未完了タスク一覧 (優先度順)")
     st.table(display_df)
 else:
