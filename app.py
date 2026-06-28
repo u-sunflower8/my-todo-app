@@ -45,10 +45,10 @@ st.markdown("""
 
     /* ボタンをシンプルで主張しすぎないデザインに */
     div.stButton > button {
-        background-color: #E0E0E0 !important;
-        color: #333333 !important;
+        background-color: #606060 !important;
+        color: #E0E0E0 !important;
         border: none !important;
-        border-radius: 6px !important;
+        border-radius: 20px !important;
         font-weight: 400 !important;
     }
     
