@@ -14,7 +14,7 @@ sheet = client.open_by_key(SHEET_ID).sheet1
 # Discord通知関数（このブロックをそのまま差し替えてください）
 def send_discord_notification(message):
     # 関数の「中」でURLを定義すれば、エラーになりません
-url = st.secrets["DISCORD"]["WEBHOOK_URL"]
+    url = st.secrets["DISCORD"]["WEBHOOK_URL"]
     payload = {"content": message}
     
     # 送信処理
