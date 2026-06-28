@@ -11,11 +11,14 @@ client = gspread.authorize(creds)
 SHEET_ID = "101hhNwt1VrR0fn3me63ifsduMqelnVIrY1ozr_Ul74w"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
-# Discord通知関数
 def send_discord_notification(message):
     url = st.secrets["DISCORD_WEBHOOK_URL"]
-    payload = {"content": message}
-    requests.post(url, json=payload)
+    # データを少し詳細にしてみます
+    payload = {"content": f"【通知】 {message}"}
+    response = requests.post(url, json=payload)
+    # 応答コードを確認して、もし失敗ならエラーを出すようにする
+    if response.status_code != 200 and response.status_code != 204:
+        st.error(f"Discordからエラーが返ってきました: {response.status_code}")
 
 st.title("ToDoリスト")
 
